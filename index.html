@@ -25,6 +25,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen relative overflow-x-hidden">
 
+    <!-- PANTALLA DE INICIO (SPLASH SCREEN) ACTUALIZADA -->
     <div id="splash-screen" class="fixed inset-0 bg-white z-50 flex flex-col justify-between items-center py-16 px-6 transition-all duration-700 ease-in-out opacity-100">
         <div></div>
 
@@ -42,7 +43,9 @@
             <div class="w-12 h-1 bg-slate-100 rounded-full overflow-hidden mb-4">
                 <div class="h-full bg-slate-900 rounded-full w-1/2 animate-[loading_1.5s_ease-in-out_infinite]"></div>
             </div>
-            <span class="text-[11px] text-slate-400 uppercase tracking-widest font-bold">Iniciando</span>
+            <span class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-4">Iniciando</span>
+            <!-- Crédito en el inicio -->
+            <span class="text-[10px] text-slate-300 uppercase tracking-widest font-semibold">Por Joaquín Díaz</span>
         </div>
     </div>
 
@@ -93,6 +96,13 @@
             <div id="daysContainer" class="divide-y divide-slate-100 max-h-[55vh] overflow-y-auto no-scrollbar">
                 </div>
         </main>
+
+        <!-- Pie de página en la pantalla principal -->
+        <footer class="mt-8 text-center">
+            <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold">
+                Desarrollado por <span class="text-slate-600 font-extrabold">Joaquín Díaz</span>
+            </p>
+        </footer>
     </div>
 
 
@@ -144,17 +154,14 @@
 
         // 1. CONTROL DE LA PANTALLA DE PRESENTACIÓN (SPLASH)
         window.addEventListener('DOMContentLoaded', () => {
-            // Cargar jornada contractual guardada o usar la de defecto
             const savedContractHours = localStorage.getItem('user-contract-hours');
             if (savedContractHours) {
                 CONTRACT_HOURS = parseFloat(savedContractHours);
             }
             inputContractHours.value = CONTRACT_HOURS;
 
-            // Retrasar el desvanecimiento para simular carga nativa
             setTimeout(() => {
                 splashScreen.classList.add('opacity-0', 'pointer-events-none');
-                // Removerlo completamente del DOM tras la animación para optimizar rendimiento
                 setTimeout(() => splashScreen.remove(), 700);
             }, 1800); 
         });
@@ -204,7 +211,6 @@
                 daysContainer.appendChild(row);
             }
 
-            // Escuchar cambios de tiempos en cada input
             daysContainer.querySelectorAll('input[type="time"]').forEach(input => {
                 input.addEventListener('change', (e) => saveAndCalculate(e, storageKey));
             });
@@ -229,7 +235,7 @@
             calculateTotal(savedData, daysInMonth);
         }
 
-        // 5. CALCULAR BALANCES DIARIOS Y MENSUAL GENERAL (Modificado para balance progresivo)
+        // 5. CALCULAR BALANCES DIARIOS Y MENSUAL GENERAL (Balance Progresivo)
         function calculateTotal(data, daysInMonth) {
             let totalMinutesBalance = 0;
 
@@ -250,25 +256,19 @@
                 const salidaMins = sH * 60 + sM;
                 
                 let workedMins = salidaMins - entradaMins;
-                if (workedMins < 0) workedMins += 24 * 60; // Ajuste si cruza medianoche
+                if (workedMins < 0) workedMins += 24 * 60; 
 
-                // Balance diario contra la jornada pactada en minutos (CONTRACT_HOURS * 60)
                 const dayBalance = workedMins - (CONTRACT_HOURS * 60);
-                
-                // Sumamos al balance acumulado progresivo del mes
                 totalMinutesBalance += dayBalance;
 
                 if (balEl) {
-                    // Ahora la etiqueta muestra el estado de tu 'cuenta bancaria de horas' hasta ese día
                     const sign = totalMinutesBalance > 0 ? '+' : totalMinutesBalance < 0 ? '-' : '';
                     balEl.textContent = `${sign}${formatMinutes(totalMinutesBalance)}`;
                     
-                    // Solo se pone en rojo si en ese momento pasaste a deber horas generales (negativo)
                     balEl.className = `w-12 text-right text-xs font-bold ${totalMinutesBalance > 0 ? 'text-emerald-500' : totalMinutesBalance < 0 ? 'text-rose-500' : 'text-slate-400'}`;
                 }
             }
 
-            // Renderizar balance final en la parte superior
             const sign = totalMinutesBalance > 0 ? '+' : totalMinutesBalance < 0 ? '-' : '';
             const absMins = Math.abs(totalMinutesBalance);
             const hours = Math.floor(absMins / 60);
@@ -285,7 +285,6 @@
             }
         }
 
-        // Corrección en el formateo para que no oculte los minutos cuando hay horas involucradas
         function formatMinutes(mins) {
             const abs = Math.abs(mins);
             const h = Math.floor(abs / 60);
@@ -313,28 +312,24 @@
 
         btnCloseSettings.addEventListener('click', closeSettings);
 
-        // Guardar configuración de jornada contractual
         btnSaveSettings.addEventListener('click', () => {
             const val = parseFloat(inputContractHours.value);
             if (val > 0 && val <= 24) {
                 CONTRACT_HOURS = val;
                 localStorage.setItem('user-contract-hours', val);
                 closeSettings();
-                // Forzar recalculado inmediato con el nuevo parámetro
                 renderMonth();
             } else {
                 alert("Por favor, ingresa una cantidad de horas válida entre 1 y 24.");
             }
         });
 
-        // Cerrar modal al tocar fuera de su contenedor
         settingsModal.addEventListener('click', (e) => {
             if (e.target === settingsModal) {
                 closeSettings();
             }
         });
 
-        // Iniciar render inicial de la aplicación
         renderMonth();
     </script>
 </body>
